@@ -1,9 +1,6 @@
 package com.example.parkinglot.service.impl;
 
-import com.example.parkinglot.entity.Park;
-import com.example.parkinglot.entity.ParkingArea;
-import com.example.parkinglot.entity.Price;
-import com.example.parkinglot.entity.Vehicle;
+import com.example.parkinglot.entity.*;
 import com.example.parkinglot.repository.ParkRepository;
 import com.example.parkinglot.service.IParkService;
 import com.example.parkinglot.service.IParkingAreaService;
@@ -14,10 +11,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.TimeZone;
+
+import static jdk.nashorn.internal.objects.NativeMath.round;
 
 @Service
 public class ParkService implements IParkService {
@@ -38,7 +41,7 @@ public class ParkService implements IParkService {
 
     @Override
     @Transactional
-    public Park checkIn(Vehicle vehicle, int parkingAreaId, LocalDateTime date){
+    public Park checkIn(Vehicle vehicle, int parkingAreaId, Date date){
 
         Optional<Vehicle> v = iVehicleService.findByPlate(vehicle.getPlate());
         Park park = null;
@@ -67,22 +70,28 @@ public class ParkService implements IParkService {
     }
 
     @Override
+    @Transactional
     public Park checkOut(Park park){
         Park p = parkRepository.findById(park.getId()).get();
         p.setCheckOut(park.getCheckOut());
         double fee = calculateFee(p.getVehicleId(),p.getParkingAreaId(), p.getCheckIn(), p.getCheckOut());
         p.setFee(fee);
+
+        ParkingArea pa = iParkingAreaService.findById(p.getParkingAreaId());
+        int vehicleCount = pa.getVehicleCount();
+        pa.setVehicleCount(vehicleCount - 1);
+        iParkingAreaService.saveParkingArea(pa);
         return parkRepository.save(p);
     }
 
-    public double calculateFee(int vehicleId, int parkingAreaId, LocalDateTime checkInTime, LocalDateTime checkOutTime){
+    public double calculateFee(int vehicleId, int parkingAreaId, Date checkInTime, Date checkOutTime){
         ParkingArea pa = iParkingAreaService.findById(parkingAreaId);
         List<Price> priceList = pa.getPrices();
         Vehicle v = iVehicleService.findById(vehicleId).get();
 
         long timeDifference = timeDifferenceInHours(checkInTime,checkOutTime);
 
-        int priceValue = 0;
+        double priceValue = 0;
 
         for(Price price : priceList){
             long startHour = price.getStartHour();
@@ -94,16 +103,25 @@ public class ParkService implements IParkService {
         }
 
         //If vehicle is of type Suv, then price is price times SUV_MULTIPLIER
+        if(v.getType().equals(Type.SUV))
+            priceValue = priceValue * SUV_MULTIPLIER;
 
         //If vehicle is of type Minivan, then price is price times MINIVAN_MULTIPLIER
+        if(v.getType().equals(Type.MINIVAN))
+            priceValue = priceValue * MINIVAN_MULTIPLIER;
 
-
-        return priceValue;
+        return Math.round(priceValue * 100.0) / 100.0;
     }
 
-    public static long timeDifferenceInHours(LocalDateTime date1, LocalDateTime date2){
+    public static long timeDifferenceInHours(Date date1, Date date2){
 
-        long diff = date1.until(date2, ChronoUnit.HOURS);
+        long diff = (date2.getTime() - date1.getTime()) / (60 * 60 * 1000);
         return diff;
+    }
+
+    @Override
+    public List<Park> findAllByCheckOut_Date(Date date){
+        Date endDate = new Date(date.getTime() + (60 * 60 * 24 * 1000));
+        return parkRepository.findAllByCheckOutBetween(date, endDate);
     }
 }

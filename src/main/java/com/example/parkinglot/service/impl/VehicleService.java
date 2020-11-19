@@ -7,7 +7,10 @@ import com.example.parkinglot.service.IVehicleService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.swing.text.html.Option;
 import java.util.Optional;
+
+import static java.util.Optional.*;
 
 @Service
 public class VehicleService implements IVehicleService {
@@ -16,7 +19,13 @@ public class VehicleService implements IVehicleService {
     VehicleRepository vehicleRepository;
 
     public Vehicle createVehicle(Vehicle vehicle){
-        return vehicleRepository.save(vehicle);
+        Optional<Vehicle> v = findByPlate(vehicle.getPlate());
+        if(v.equals(empty()))
+            return vehicleRepository.save(vehicle);
+        else{
+            //throw object exists exception
+            return null;
+        }
     }
 
     public Optional<Vehicle> findById(Integer id){

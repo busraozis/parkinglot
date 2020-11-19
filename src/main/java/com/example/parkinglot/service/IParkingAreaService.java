@@ -2,8 +2,7 @@ package com.example.parkinglot.service;
 
 import com.example.parkinglot.entity.ParkingArea;
 
-import java.time.LocalDate;
-import java.util.Optional;
+import java.text.ParseException;
 
 public interface IParkingAreaService {
 
@@ -14,7 +13,7 @@ public interface IParkingAreaService {
 
     public ParkingArea getParkingAreaByName(String name);
 
-    public int getDailyIncome(int id, LocalDate date);
+    public double getDailyIncome(int id, String date) throws ParseException;
 
     public ParkingArea findById(Integer id);
 }

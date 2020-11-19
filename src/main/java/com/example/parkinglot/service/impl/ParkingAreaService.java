@@ -1,15 +1,22 @@
 package com.example.parkinglot.service.impl;
 
+import com.example.parkinglot.entity.Park;
 import com.example.parkinglot.entity.ParkingArea;
 import com.example.parkinglot.entity.Price;
 import com.example.parkinglot.repository.ParkingAreaRepository;
 import com.example.parkinglot.repository.PriceRepository;
+import com.example.parkinglot.service.IParkService;
 import com.example.parkinglot.service.IParkingAreaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +28,9 @@ public class ParkingAreaService implements IParkingAreaService {
 
     @Autowired
     PriceRepository priceRepository;
+
+    @Autowired
+    IParkService iParkService;
 
     @Override
     @Transactional
@@ -55,8 +65,16 @@ public class ParkingAreaService implements IParkingAreaService {
     }
 
     @Override
-    public int getDailyIncome(int id, LocalDate date){
-        return 0;
+    public double getDailyIncome(int id, String date) throws ParseException {
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        Date dateTime = formatter.parse(date);
+        List<Park> parks = iParkService.findAllByCheckOut_Date(dateTime);
+        double income = 0;
+        for(Park park : parks){
+            if(park.getParkingAreaId() == id)
+                income += park.getFee();
+        }
+        return income;
     }
 
     @Override

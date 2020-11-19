@@ -21,6 +21,6 @@ public class Price {
     private Integer parkingAreaId;
     private long startHour;
     private long endHour;
-    private int value;
+    private double value;
 
 }
