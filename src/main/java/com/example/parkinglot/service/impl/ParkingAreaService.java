@@ -32,6 +32,13 @@ public class ParkingAreaService implements IParkingAreaService {
     @Autowired
     IParkService iParkService;
 
+    /**
+     *
+     * @param parkingArea
+     * @return p of type ParkingArea
+     * @description takes a Parking area object and saves it to the db,
+     * also taking a list of parking area prices and saves it to the db as well.
+     */
     @Override
     @Transactional
     public ParkingArea saveParkingArea(ParkingArea parkingArea){
@@ -48,6 +55,14 @@ public class ParkingAreaService implements IParkingAreaService {
 
     }
 
+    /**
+     *
+     * @param id
+     * @return void
+     * @description takes id of a parkingArea record and deletes corresponding
+     * ParkingArea and Price records in the db.
+     *
+     */
     @Override
     @Transactional
     public void deleteParkingArea(Integer id){
@@ -55,6 +70,16 @@ public class ParkingAreaService implements IParkingAreaService {
         priceRepository.deleteAllByParkingAreaId(id);
     }
 
+    /**
+     *
+     * @param name
+     * @return p of type ParkingArea
+     * @description takes a name parameter and finds ParkingArea record with name
+     * and finds corresponding Price records of this found ParkingArea record by its id,
+     * sets price list of found ParkingArea record to these Price records and then
+     * returns this found ParkingArea object.
+     *
+     */
     @Override
     public ParkingArea getParkingAreaByName(String name){
         ParkingArea p = parkingAreaRepository.findByName(name);
@@ -64,6 +89,20 @@ public class ParkingAreaService implements IParkingAreaService {
         return p;
     }
 
+    /**
+     *
+     * @param id
+     * @param date
+     * @return income of type double
+     * @throws ParseException
+     * @description takes id of a ParkingArea and a date as string,
+     * converts input String date to a Date object,
+     * finds all Park records that were checked out on the input date,
+     * for each Park record, it compares its parkingAreaId with the input id
+     * and if they match, it adds the Park fee to the income,
+     * returns this income.
+     *
+     */
     @Override
     public double getDailyIncome(int id, String date) throws ParseException {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
@@ -77,6 +116,17 @@ public class ParkingAreaService implements IParkingAreaService {
         return income;
     }
 
+    /**
+     *
+     * @param id
+     * @return parkingArea of type ParkingArea
+     * @description takes an id of a ParkingArea,
+     * searches for it in the db,
+     * if it finds, searches for related Price list in the Price table with parkingAreaId,
+     * sets this price list to parkingArea,
+     * returns found parkingArea.
+     *
+     */
     @Override
     public ParkingArea findById(Integer id){
         Optional<ParkingArea> pa = parkingAreaRepository.findById(id);

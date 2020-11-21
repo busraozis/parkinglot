@@ -39,6 +39,22 @@ public class ParkService implements IParkService {
 
     Logger logger = LoggerFactory.getLogger(ParkService.class);
 
+    /**
+     *
+     * @param vehicle
+     * @param parkingAreaId
+     * @param date
+     * @return park of type Park
+     * @description takes a Vehicle object to be parked, takes parkingAreaId of the ParkingArea
+     * where the vehicle will be parked and a Date as checkInDate of this parking operation.
+     * Searches for the vehicle in the db, if vehicle doesn't exist, it stores the vehicle to the db.
+     * Finds ParkingArea record with parkingAreaId, if it finds, checks for its remaining vehicle capacity.
+     * If capacity is greater than vehicleCount + 1, it creates a new Park record related to ParkingArea
+     * and updates adding  +1 to vehicleCount of ParkingArea record.
+     * If capacity is exceeded, park is not created.
+     * Returns created Park object.
+     *
+     */
     @Override
     @Transactional
     public Park checkIn(Vehicle vehicle, int parkingAreaId, Date date){
@@ -69,6 +85,17 @@ public class ParkService implements IParkService {
         return park;
     }
 
+    /**
+     *
+     * @param park
+     * @return updated Park object.
+     * @description takes park input to be checked-out,
+     * finds the Park record to be checked-out by input park's id,
+     * calculates fee and sets fee of found Park object,
+     * finds park-related ParkingArea record and updates its vehicle count subtracting 1.
+     * returns updated Park object.
+     *
+     */
     @Override
     @Transactional
     public Park checkOut(Park park){
@@ -84,6 +111,24 @@ public class ParkService implements IParkService {
         return parkRepository.save(p);
     }
 
+    /**
+     *
+     * @param vehicleId
+     * @param parkingAreaId
+     * @param checkInTime
+     * @param checkOutTime
+     * @return a double value that represents fee.
+     * @description takes vehicleId, parkingAreaId, checkInTime and checkInDate.
+     * finds ParkingArea record and its price list by parkingAreaId,
+     * finds Vehicle record by vehicleId,
+     * calculates time difference in hours between checkInTime and checkOutTime,
+     * For each Price in price list, compares timeDifference to startHour and endHour of Price,
+     * and if it's between these hours, it takes related value of Price as base priceValue.
+     * If vehicle id of type SUV, it multiplies base priceValue with SUV_MULTIPLIER,
+     * if vehicle id of type MINIVAN, it multiplies base priceValue with MINIVAN_MULTIPLIER,
+     * returns calculated priceValue rounded to 2 decimal places.
+     *
+     */
     public double calculateFee(int vehicleId, int parkingAreaId, Date checkInTime, Date checkOutTime){
         ParkingArea pa = iParkingAreaService.findById(parkingAreaId);
         List<Price> priceList = pa.getPrices();
@@ -113,12 +158,28 @@ public class ParkService implements IParkService {
         return Math.round(priceValue * 100.0) / 100.0;
     }
 
+    /**
+     *
+     * @param date1
+     * @param date2
+     * @return a long value
+     * @description calculates time difference in hours between two Date objects.
+     *
+     */
     public static long timeDifferenceInHours(Date date1, Date date2){
 
         long diff = (date2.getTime() - date1.getTime()) / (60 * 60 * 1000);
         return diff;
     }
 
+    /**
+     *
+     * @param date
+     * @return List of Park objects
+     * @description finds all Park records checkOutDate of which are in between input Date
+     * and input Date + 1 day.
+     *
+     */
     @Override
     public List<Park> findAllByCheckOut_Date(Date date){
         Date endDate = new Date(date.getTime() + (60 * 60 * 24 * 1000));

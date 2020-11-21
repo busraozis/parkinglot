@@ -76,6 +76,7 @@ public class ParkingLotController {
 
     @RequestMapping(path = "/getDailyIncome/parkingArea/{id}/date/{date}", method = RequestMethod.GET)
     @ResponseBody
+    @ApiOperation(value = "Gets Daily Income of a ParkingArea on the given date")
     public double getDailyIncome(@PathVariable Integer id, @PathVariable("date") String date) throws ParseException {
         return iParkingAreaService.getDailyIncome(id,date);
     }

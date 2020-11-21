@@ -9,9 +9,6 @@ import java.util.List;
 
 public interface ParkRepository extends JpaRepository<Park, Integer> {
 
-    List<Park> findAllByCheckOut(Date date);
-
     List<Park> findAllByCheckOutBetween(Date startDate, Date endDate);
-
 
 }
