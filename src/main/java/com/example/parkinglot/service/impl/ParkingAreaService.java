@@ -7,6 +7,8 @@ import com.example.parkinglot.repository.ParkingAreaRepository;
 import com.example.parkinglot.repository.PriceRepository;
 import com.example.parkinglot.service.IParkService;
 import com.example.parkinglot.service.IParkingAreaService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +34,8 @@ public class ParkingAreaService implements IParkingAreaService {
     @Autowired
     IParkService iParkService;
 
+    Logger logger = LoggerFactory.getLogger(ParkingAreaService.class);
+
     /**
      *
      * @param parkingArea
@@ -43,12 +47,14 @@ public class ParkingAreaService implements IParkingAreaService {
     @Transactional
     public ParkingArea saveParkingArea(ParkingArea parkingArea){
         ParkingArea p = parkingAreaRepository.save(parkingArea);
+        logger.info("ParkingArea " + p.getId() + " is saved.");
         List<Price> prices = p.getPrices();
         int parkingAreaId = p.getId();
         if(prices != null) {
             for (Price price : prices) {
                 price.setParkingAreaId(parkingAreaId);
-                priceRepository.save(price);
+                Price pr = priceRepository.save(price);
+                logger.info("Price " + pr.getId() + " is saved.");
             }
         }
         return p;
@@ -67,7 +73,9 @@ public class ParkingAreaService implements IParkingAreaService {
     @Transactional
     public void deleteParkingArea(Integer id){
         parkingAreaRepository.deleteById(id);
+        logger.info("ParkingArea " + id + "is deleted.");
         priceRepository.deleteAllByParkingAreaId(id);
+        logger.info("All Price related to ParkingArea are deleted.");
     }
 
     /**
@@ -83,9 +91,11 @@ public class ParkingAreaService implements IParkingAreaService {
     @Override
     public ParkingArea getParkingAreaByName(String name){
         ParkingArea p = parkingAreaRepository.findByName(name);
+        logger.info("ParkingArea with name " + name + " is found.");
         int parkingAreaId = p.getId();
         List<Price> prices = priceRepository.findAllByParkingAreaId(parkingAreaId);
         p.setPrices(prices);
+        logger.info("All Price related to ParkingArea with name " + name + " is found.");
         return p;
     }
 
@@ -105,9 +115,12 @@ public class ParkingAreaService implements IParkingAreaService {
      */
     @Override
     public double getDailyIncome(int id, String date) throws ParseException {
+        logger.info("getDailyIncome method started.");
+        logger.info("Input Date: " + date);
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         Date dateTime = formatter.parse(date);
         List<Park> parks = iParkService.findAllByCheckOut_Date(dateTime);
+        logger.info("Park records are found.");
         double income = 0;
         for(Park park : parks){
             if(park.getParkingAreaId() == id)
@@ -129,10 +142,12 @@ public class ParkingAreaService implements IParkingAreaService {
      */
     @Override
     public ParkingArea findById(Integer id){
+        logger.info("ParkingAreaService.findById method started.");
         Optional<ParkingArea> pa = parkingAreaRepository.findById(id);
         ParkingArea parkingArea = null;
         if(!pa.equals(Optional.empty())){
             parkingArea = pa.get();
+            logger.info("ParkingArea is found.");
             List<Price> prices = priceRepository.findAllByParkingAreaId(pa.get().getId());
             parkingArea.setPrices(prices);
         }

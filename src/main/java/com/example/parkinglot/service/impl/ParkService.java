@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.TimeZone;
 
+import static jdk.nashorn.internal.objects.NativeMath.log;
 import static jdk.nashorn.internal.objects.NativeMath.round;
 
 @Service
@@ -63,18 +64,24 @@ public class ParkService implements IParkService {
         Park park = null;
         if(v.equals(Optional.empty())){
             vehicle = iVehicleService.createVehicle(vehicle);
+            logger.info("Vehicle did not exist. Vehicle " + vehicle.getId() + " is created.");
         }else{
             vehicle = v.get();
+            logger.info("Vehicle is found.");
         }
         try {
             ParkingArea p = iParkingAreaService.findById(parkingAreaId);
             int vehicleCount = p.getVehicleCount();
             if(vehicleCount + 1 <= p.getCapacity()) {
+                logger.info("ParkingArea has capacity. Capacity: " + p.getCapacity() + " VehicleCount : " + vehicleCount);
                 park = new Park(date, null, vehicle.getId(), p.getId(), 0);
                 park = parkRepository.save(park);
+                logger.info("Park is created.");
                 p.setVehicleCount(vehicleCount + 1);
                 iParkingAreaService.saveParkingArea(p);
+                logger.info("ParkingArea vehicleCount is updated.");
             }else{
+                logger.info("ParkingArea capacity will be exceeded. Capacity: " + p.getCapacity() + " VehicleCount : " + vehicleCount);
                 logger.info("Park cannot be created.");
             }
         }catch (Exception e){
@@ -99,15 +106,22 @@ public class ParkService implements IParkService {
     @Override
     @Transactional
     public Park checkOut(Park park){
+
         Park p = parkRepository.findById(park.getId()).get();
+        logger.info("Park " + park.getId() + "is found.");
+        logger.info("CheckOutDate: " + park.getCheckOut().toString());
+        logger.info("CheckInDate: " + p.getCheckIn().toString());
+        logger.info("Vehicle Id: " + p.getVehicleId());
         p.setCheckOut(park.getCheckOut());
         double fee = calculateFee(p.getVehicleId(),p.getParkingAreaId(), p.getCheckIn(), p.getCheckOut());
         p.setFee(fee);
+        logger.info("Fee is calculated.");
 
         ParkingArea pa = iParkingAreaService.findById(p.getParkingAreaId());
         int vehicleCount = pa.getVehicleCount();
         pa.setVehicleCount(vehicleCount - 1);
         iParkingAreaService.saveParkingArea(pa);
+        logger.info("ParkingArea vehicleCount is updated.");
         return parkRepository.save(p);
     }
 
@@ -130,6 +144,7 @@ public class ParkService implements IParkService {
      *
      */
     public double calculateFee(int vehicleId, int parkingAreaId, Date checkInTime, Date checkOutTime){
+        logger.info("calculateFee started.");
         ParkingArea pa = iParkingAreaService.findById(parkingAreaId);
         List<Price> priceList = pa.getPrices();
         Vehicle v = iVehicleService.findById(vehicleId).get();
@@ -155,6 +170,7 @@ public class ParkService implements IParkService {
         if(v.getType().equals(Type.MINIVAN))
             priceValue = priceValue * MINIVAN_MULTIPLIER;
 
+        logger.info("calculateFee ended.");
         return Math.round(priceValue * 100.0) / 100.0;
     }
 
@@ -182,6 +198,8 @@ public class ParkService implements IParkService {
      */
     @Override
     public List<Park> findAllByCheckOut_Date(Date date){
+
+        logger.info("findAllByCheckOut_Date method started.");
         Date endDate = new Date(date.getTime() + (60 * 60 * 24 * 1000));
         return parkRepository.findAllByCheckOutBetween(date, endDate);
     }
