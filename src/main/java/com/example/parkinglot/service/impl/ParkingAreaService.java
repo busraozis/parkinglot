@@ -141,7 +141,7 @@ public class ParkingAreaService implements IParkingAreaService {
         logger.info("ParkingAreaService.findById method started.");
         Optional<ParkingArea> pa = parkingAreaRepository.findById(id);
         ParkingArea parkingArea = null;
-        if(!pa.equals(Optional.empty())){
+        if(!pa.equals(Optional.empty()) && pa.isPresent()){
             parkingArea = pa.get();
             logger.info("ParkingArea is found.");
             List<Price> prices = priceRepository.findAllByParkingAreaId(pa.get().getId());

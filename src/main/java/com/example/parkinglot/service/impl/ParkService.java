@@ -53,7 +53,7 @@ public class ParkService implements IParkService {
 
         Optional<Vehicle> v = iVehicleService.findByPlate(vehicle.getPlate());
         Park park = null;
-        if(v.equals(Optional.empty())){
+        if(!v.isPresent()){
             vehicle = iVehicleService.createVehicle(vehicle);
             logger.info("Vehicle did not exist. Vehicle {},{}" , vehicle.getId() , " is created.");
         }else{
@@ -93,22 +93,26 @@ public class ParkService implements IParkService {
     @Transactional
     public Park checkOut(Park park){
 
-        Park p = parkRepository.findById(park.getId()).get();
-        logger.info("Park {},{}" , park.getId() , "is found.");
-        logger.info("CheckOutDate: {}" , park.getCheckOut().toString());
-        logger.info("CheckInDate: {}" , p.getCheckIn().toString());
-        logger.info("Vehicle Id: {}" , p.getVehicleId());
-        p.setCheckOut(park.getCheckOut());
-        double fee = calculateFee(p.getVehicleId(),p.getParkingAreaId(), p.getCheckIn(), p.getCheckOut());
-        p.setFee(fee);
-        logger.info("Fee is calculated.");
+        Optional<Park> optionalPark = parkRepository.findById(park.getId());
+        if(optionalPark.isPresent()) {
+            Park p = optionalPark.get();
+            logger.info("Park {},{}", park.getId(), "is found.");
+            logger.info("CheckOutDate: {}", park.getCheckOut());
+            logger.info("CheckInDate: {}", p.getCheckIn());
+            logger.info("Vehicle Id: {}", p.getVehicleId());
+            p.setCheckOut(park.getCheckOut());
+            double fee = calculateFee(p.getVehicleId(), p.getParkingAreaId(), p.getCheckIn(), p.getCheckOut());
+            p.setFee(fee);
+            logger.info("Fee is calculated.");
 
-        ParkingArea pa = iParkingAreaService.findById(p.getParkingAreaId());
-        int vehicleCount = pa.getVehicleCount();
-        pa.setVehicleCount(vehicleCount - 1);
-        iParkingAreaService.saveParkingArea(pa);
-        logger.info("ParkingArea vehicleCount is updated.");
-        return parkRepository.save(p);
+            ParkingArea pa = iParkingAreaService.findById(p.getParkingAreaId());
+            int vehicleCount = pa.getVehicleCount();
+            pa.setVehicleCount(vehicleCount - 1);
+            iParkingAreaService.saveParkingArea(pa);
+            logger.info("ParkingArea vehicleCount is updated.");
+            return parkRepository.save(p);
+        }
+        return null;
     }
 
     /**
@@ -133,30 +137,33 @@ public class ParkService implements IParkService {
         logger.info("calculateFee started.");
         ParkingArea pa = iParkingAreaService.findById(parkingAreaId);
         List<Price> priceList = pa.getPrices();
-        Vehicle v = iVehicleService.findById(vehicleId).get();
-
-        long timeDifference = timeDifferenceInHours(checkInTime,checkOutTime);
-
         double priceValue = 0;
 
-        for(Price price : priceList){
-            long startHour = price.getStartHour();
-            long endHour = price.getEndHour();
-            if(timeDifference >= startHour && timeDifference < endHour){
-                priceValue = price.getValue();
-                break;
+        Optional<Vehicle> optionalVehicle = iVehicleService.findById(vehicleId);
+        if(optionalVehicle.isPresent()) {
+            Vehicle v = optionalVehicle.get();
+
+            long timeDifference = timeDifferenceInHours(checkInTime, checkOutTime);
+
+            for (Price price : priceList) {
+                long startHour = price.getStartHour();
+                long endHour = price.getEndHour();
+                if (timeDifference >= startHour && timeDifference < endHour) {
+                    priceValue = price.getValue();
+                    break;
+                }
             }
+
+            //If vehicle is of type Suv, then price is price times SUV_MULTIPLIER
+            if (v.getType().equals(Type.SUV))
+                priceValue = priceValue * SUV_MULTIPLIER;
+
+            //If vehicle is of type Minivan, then price is price times MINIVAN_MULTIPLIER
+            if (v.getType().equals(Type.MINIVAN))
+                priceValue = priceValue * MINIVAN_MULTIPLIER;
+
+            logger.info("calculateFee ended.");
         }
-
-        //If vehicle is of type Suv, then price is price times SUV_MULTIPLIER
-        if(v.getType().equals(Type.SUV))
-            priceValue = priceValue * SUV_MULTIPLIER;
-
-        //If vehicle is of type Minivan, then price is price times MINIVAN_MULTIPLIER
-        if(v.getType().equals(Type.MINIVAN))
-            priceValue = priceValue * MINIVAN_MULTIPLIER;
-
-        logger.info("calculateFee ended.");
         return Math.round(priceValue * 100.0) / 100.0;
     }
 
