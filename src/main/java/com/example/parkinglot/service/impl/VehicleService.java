@@ -1,7 +1,9 @@
 package com.example.parkinglot.service.impl;
 
 
+import com.example.parkinglot.entity.Type;
 import com.example.parkinglot.entity.Vehicle;
+import com.example.parkinglot.exceptions.VehicleTypeNotValidException;
 import com.example.parkinglot.repository.VehicleRepository;
 import com.example.parkinglot.service.IVehicleService;
 import org.slf4j.Logger;
@@ -32,6 +34,9 @@ public class VehicleService implements IVehicleService {
      */
     public Vehicle createVehicle(Vehicle vehicle){
         logger.info("createVehicle method started.");
+        if(!(vehicle.getType().equals(Type.SEDAN) || vehicle.getType().equals(Type.SUV) || vehicle.getType().equals(Type.MINIVAN)))
+            throw new VehicleTypeNotValidException(vehicle.getType().toString());
+
         Optional<Vehicle> v = findByPlate(vehicle.getPlate());
         if(v.equals(empty()))
             return vehicleRepository.save(vehicle);

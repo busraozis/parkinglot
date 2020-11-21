@@ -3,6 +3,7 @@ package com.example.parkinglot.service.impl;
 import com.example.parkinglot.entity.Park;
 import com.example.parkinglot.entity.ParkingArea;
 import com.example.parkinglot.entity.Price;
+import com.example.parkinglot.exceptions.PriceListNotValidException;
 import com.example.parkinglot.repository.ParkingAreaRepository;
 import com.example.parkinglot.repository.PriceRepository;
 import com.example.parkinglot.service.IParkService;
@@ -15,9 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class ParkingAreaService implements IParkingAreaService {
@@ -48,6 +47,9 @@ public class ParkingAreaService implements IParkingAreaService {
         List<Price> prices = p.getPrices();
         int parkingAreaId = p.getId();
         if(prices != null) {
+            if(!validatePrices(prices))
+                throw new PriceListNotValidException(prices.toString());
+
             for (Price price : prices) {
                 price.setParkingAreaId(parkingAreaId);
                 Price pr = priceRepository.save(price);
@@ -141,13 +143,32 @@ public class ParkingAreaService implements IParkingAreaService {
         logger.info("ParkingAreaService.findById method started.");
         Optional<ParkingArea> pa = parkingAreaRepository.findById(id);
         ParkingArea parkingArea = null;
-        if(!pa.equals(Optional.empty()) && pa.isPresent()){
+        if(!pa.equals(Optional.empty()) && pa.isPresent()
+        ){
             parkingArea = pa.get();
             logger.info("ParkingArea is found.");
             List<Price> prices = priceRepository.findAllByParkingAreaId(pa.get().getId());
             parkingArea.setPrices(prices);
         }
         return parkingArea;
+    }
+
+    public boolean validatePrices(List<Price> prices){
+        Collections.sort(prices);
+
+        if(prices.get(prices.size() - 1).getEndHour() != 24)
+            return false;
+
+        long prevEndHour = 0;
+        for(Price price : prices){
+            long currentStartHour = price.getStartHour();
+            if(prevEndHour != currentStartHour)
+                return false;
+
+            prevEndHour = price.getEndHour();
+        }
+
+        return true;
     }
 
 }

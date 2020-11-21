@@ -4,13 +4,14 @@ package com.example.parkinglot.controller;
 import com.example.parkinglot.entity.Park;
 import com.example.parkinglot.entity.ParkingArea;
 import com.example.parkinglot.entity.Vehicle;
+import com.example.parkinglot.exceptions.PriceListNotValidException;
+import com.example.parkinglot.exceptions.VehicleTypeNotValidException;
 import com.example.parkinglot.service.IParkService;
 import com.example.parkinglot.service.IParkingAreaService;
 import com.example.parkinglot.service.IVehicleService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
-import io.swagger.annotations.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,8 +41,8 @@ public class ParkingLotController {
 
     @PostMapping(value = "/updateParkingArea")
     @ApiOperation(value = "Updates Parking Area")
-    public ParkingArea updateParkingArea(@RequestBody ParkingArea parkingArea){
-        return iParkingAreaService.saveParkingArea(parkingArea);
+    public ResponseEntity<ParkingArea> updateParkingArea(@RequestBody ParkingArea parkingArea){
+        return new ResponseEntity<>(iParkingAreaService.saveParkingArea(parkingArea),HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/deleteParkingArea/{id}")
@@ -52,33 +53,42 @@ public class ParkingLotController {
 
     @GetMapping(value = "/getParkingAreaByName/{name}")
     @ApiOperation(value = "Get Parking Area By Name", httpMethod = "GET")
-    public ParkingArea getParkingAreaByName(@PathVariable @ApiParam String name){
-        return iParkingAreaService.getParkingAreaByName(name);
+    public ResponseEntity<ParkingArea> getParkingAreaByName(@PathVariable @ApiParam String name){
+        return new ResponseEntity<>(iParkingAreaService.getParkingAreaByName(name), HttpStatus.FOUND);
     }
 
     @PostMapping(value = "/createVehicle")
     @ApiOperation(value = "Creates Vehicle")
-    public Vehicle createVehicle(@RequestBody Vehicle vehicle){
-        return iVehicleService.createVehicle(vehicle);
+    public ResponseEntity<Vehicle> createVehicle(@RequestBody Vehicle vehicle){
+        return new ResponseEntity<>(iVehicleService.createVehicle(vehicle),HttpStatus.CREATED);
     }
 
     @PostMapping(value = "/checkin")
     @ApiOperation(value = "Checks In a Vehicle in a Parking area", notes = "checkIn, parkingAreaId and vehicle is required.")
-    public Park createPark(@RequestBody Park park){
-        return iParkService.checkIn(park.getVehicle(),park.getParkingAreaId(),park.getCheckIn());
+    public ResponseEntity<Park> createPark(@RequestBody Park park){
+        return new ResponseEntity<>(iParkService.checkIn(park.getVehicle(),park.getParkingAreaId(),park.getCheckIn()),HttpStatus.CREATED);
     }
 
     @PostMapping(value = "/checkout")
     @ApiOperation(value = "Checks Out a Vehicle From a Parking area", notes = "checkOut, parkId is required.")
-    public Park updatePark(@RequestBody Park park){
-        return iParkService.checkOut(park);
+    public ResponseEntity<Park> updatePark(@RequestBody Park park){
+        return new ResponseEntity<>(iParkService.checkOut(park), HttpStatus.OK);
     }
 
-    @RequestMapping(path = "/getDailyIncome/parkingArea/{id}/date/{date}", method = RequestMethod.GET)
+    @GetMapping(path = "/getDailyIncome/parkingArea/{id}/date/{date}")
     @ResponseBody
     @ApiOperation(value = "Gets Daily Income of a ParkingArea on the given date")
     public double getDailyIncome(@PathVariable Integer id, @PathVariable("date") String date) throws ParseException {
         return iParkingAreaService.getDailyIncome(id,date);
     }
 
+    @ExceptionHandler({VehicleTypeNotValidException.class})
+    public String vehicleTypeNotValidException(){
+        return "Vehicle type is not valid.";
+    }
+
+    @ExceptionHandler({PriceListNotValidException.class})
+    public String priceListNotValidException(){
+        return "Price List is invalid.";
+    }
 }

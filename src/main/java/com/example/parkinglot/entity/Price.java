@@ -13,7 +13,7 @@ import javax.persistence.Id;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class Price {
+public class Price implements Comparable<Price>{
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,4 +23,10 @@ public class Price {
     private long endHour;
     private double value;
 
+    @Override
+    public int compareTo(Price p){
+        Long startHour = new Long(this.startHour);
+        Long pStartHour = new Long(p.getStartHour());
+        return startHour.compareTo(pStartHour);
+    }
 }
