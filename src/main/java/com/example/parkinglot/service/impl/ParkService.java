@@ -10,18 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.TimeZone;
-
-import static jdk.nashorn.internal.objects.NativeMath.log;
-import static jdk.nashorn.internal.objects.NativeMath.round;
 
 @Service
 public class ParkService implements IParkService {
@@ -42,9 +33,9 @@ public class ParkService implements IParkService {
 
     /**
      *
-     * @param vehicle
-     * @param parkingAreaId
-     * @param date
+     * @param vehicle : Vehicle object to be parked.
+     * @param parkingAreaId : id of ParkingArea record where the vehicle will be parked.
+     * @param date : check in date of vehicle to the parking area
      * @return park of type Park
      * @description takes a Vehicle object to be parked, takes parkingAreaId of the ParkingArea
      * where the vehicle will be parked and a Date as checkInDate of this parking operation.
@@ -69,32 +60,27 @@ public class ParkService implements IParkService {
             vehicle = v.get();
             logger.info("Vehicle is found.");
         }
-        try {
-            ParkingArea p = iParkingAreaService.findById(parkingAreaId);
-            int vehicleCount = p.getVehicleCount();
-            if(vehicleCount + 1 <= p.getCapacity()) {
-                logger.info("ParkingArea has capacity. Capacity: " + p.getCapacity() + " VehicleCount : " + vehicleCount);
-                park = new Park(date, null, vehicle.getId(), p.getId(), 0);
-                park = parkRepository.save(park);
-                logger.info("Park is created.");
-                p.setVehicleCount(vehicleCount + 1);
-                iParkingAreaService.saveParkingArea(p);
-                logger.info("ParkingArea vehicleCount is updated.");
-            }else{
-                logger.info("ParkingArea capacity will be exceeded. Capacity: " + p.getCapacity() + " VehicleCount : " + vehicleCount);
-                logger.info("Park cannot be created.");
-            }
-        }catch (Exception e){
-            logger.error(e.getMessage());
-            throw e;
-        }
 
+        ParkingArea p = iParkingAreaService.findById(parkingAreaId);
+        int vehicleCount = p.getVehicleCount();
+        if(vehicleCount + 1 <= p.getCapacity()) {
+            logger.info("ParkingArea has capacity. Capacity: " + p.getCapacity() + " VehicleCount : " + vehicleCount);
+            park = new Park(date, null, vehicle.getId(), p.getId(), 0);
+            park = parkRepository.save(park);
+            logger.info("Park is created.");
+            p.setVehicleCount(vehicleCount + 1);
+            iParkingAreaService.saveParkingArea(p);
+            logger.info("ParkingArea vehicleCount is updated.");
+        }else{
+            logger.info("ParkingArea capacity will be exceeded. Capacity: " + p.getCapacity() + " VehicleCount : " + vehicleCount);
+            logger.info("Park cannot be created.");
+        }
         return park;
     }
 
     /**
      *
-     * @param park
+     * @param park : Park object to be checked out.
      * @return updated Park object.
      * @description takes park input to be checked-out,
      * finds the Park record to be checked-out by input park's id,
@@ -127,10 +113,10 @@ public class ParkService implements IParkService {
 
     /**
      *
-     * @param vehicleId
-     * @param parkingAreaId
-     * @param checkInTime
-     * @param checkOutTime
+     * @param vehicleId : id of Vehicle
+     * @param parkingAreaId : id of ParkingArea
+     * @param checkInTime : checkin time
+     * @param checkOutTime : checkout time
      * @return a double value that represents fee.
      * @description takes vehicleId, parkingAreaId, checkInTime and checkInDate.
      * finds ParkingArea record and its price list by parkingAreaId,
@@ -176,21 +162,19 @@ public class ParkService implements IParkService {
 
     /**
      *
-     * @param date1
-     * @param date2
+     * @param date1 : date with less value
+     * @param date2 : date with greater value
      * @return a long value
      * @description calculates time difference in hours between two Date objects.
      *
      */
     public static long timeDifferenceInHours(Date date1, Date date2){
-
-        long diff = (date2.getTime() - date1.getTime()) / (60 * 60 * 1000);
-        return diff;
+        return (date2.getTime() - date1.getTime()) / (60 * 60 * 1000);
     }
 
     /**
      *
-     * @param date
+     * @param date : date
      * @return List of Park objects
      * @description finds all Park records checkOutDate of which are in between input Date
      * and input Date + 1 day.

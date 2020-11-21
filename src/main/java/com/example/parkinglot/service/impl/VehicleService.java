@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.html.Option;
 import java.util.Optional;
 
 import static java.util.Optional.*;
@@ -24,7 +23,7 @@ public class VehicleService implements IVehicleService {
 
     /**
      *
-     * @param vehicle
+     * @param vehicle : Vehicle object to be created.
      * @return Vehicle object
      * @description taked a vehicle as input and searches for Vehicle record with input's plate,
      * if not found, it creates a related Vehicle record,
@@ -44,7 +43,7 @@ public class VehicleService implements IVehicleService {
 
     /**
      *
-     * @param id
+     * @param id : id of Vehicle to be retrieved.
      * @return Optional<Vehicle>
      * @description searches for a Vehicle with input id.
      *
@@ -56,7 +55,7 @@ public class VehicleService implements IVehicleService {
 
     /**
      *
-     * @param plate
+     * @param plate : plate of Vehicle to be retrieved.
      * @return Optional<Vehicle>
      * @description searches for a Vehicle with input plate.
      *

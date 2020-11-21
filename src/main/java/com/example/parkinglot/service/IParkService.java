@@ -10,10 +10,10 @@ import java.util.List;
 
 public interface IParkService {
 
-    public Park checkIn(Vehicle vehicle, int parkingAreaId, Date date);
+    Park checkIn(Vehicle vehicle, int parkingAreaId, Date date);
 
-    public Park checkOut(Park park);
+    Park checkOut(Park park);
 
-    public List<Park> findAllByCheckOut_Date(Date date);
+    List<Park> findAllByCheckOut_Date(Date date);
 
 }

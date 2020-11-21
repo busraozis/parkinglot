@@ -15,9 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +35,7 @@ public class ParkingAreaService implements IParkingAreaService {
 
     /**
      *
-     * @param parkingArea
+     * @param parkingArea : ParkingArea object to be saved.
      * @return p of type ParkingArea
      * @description takes a Parking area object and saves it to the db,
      * also taking a list of parking area prices and saves it to the db as well.
@@ -63,8 +60,7 @@ public class ParkingAreaService implements IParkingAreaService {
 
     /**
      *
-     * @param id
-     * @return void
+     * @param id : id of ParkingArea record to be deleted.
      * @description takes id of a parkingArea record and deletes corresponding
      * ParkingArea and Price records in the db.
      *
@@ -80,7 +76,7 @@ public class ParkingAreaService implements IParkingAreaService {
 
     /**
      *
-     * @param name
+     * @param name : name of ParkingArea record to be retrieved.
      * @return p of type ParkingArea
      * @description takes a name parameter and finds ParkingArea record with name
      * and finds corresponding Price records of this found ParkingArea record by its id,
@@ -101,10 +97,10 @@ public class ParkingAreaService implements IParkingAreaService {
 
     /**
      *
-     * @param id
-     * @param date
+     * @param id : id of ParkingArea record daily income of which will be calculated.
+     * @param date : date of income to be calculated.
      * @return income of type double
-     * @throws ParseException
+     * @throws ParseException : throws ParseException when String cannot be converted o Date.
      * @description takes id of a ParkingArea and a date as string,
      * converts input String date to a Date object,
      * finds all Park records that were checked out on the input date,
@@ -131,7 +127,7 @@ public class ParkingAreaService implements IParkingAreaService {
 
     /**
      *
-     * @param id
+     * @param id : id of ParkingArea record to be found.
      * @return parkingArea of type ParkingArea
      * @description takes an id of a ParkingArea,
      * searches for it in the db,
