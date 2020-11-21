@@ -44,14 +44,14 @@ public class ParkingAreaService implements IParkingAreaService {
     @Transactional
     public ParkingArea saveParkingArea(ParkingArea parkingArea){
         ParkingArea p = parkingAreaRepository.save(parkingArea);
-        logger.info("ParkingArea " + p.getId() + " is saved.");
+        logger.info("ParkingArea {},{}" , p.getId() , " is saved.");
         List<Price> prices = p.getPrices();
         int parkingAreaId = p.getId();
         if(prices != null) {
             for (Price price : prices) {
                 price.setParkingAreaId(parkingAreaId);
                 Price pr = priceRepository.save(price);
-                logger.info("Price " + pr.getId() + " is saved.");
+                logger.info("Price {},{}" , pr.getId() , " is saved.");
             }
         }
         return p;
@@ -69,7 +69,7 @@ public class ParkingAreaService implements IParkingAreaService {
     @Transactional
     public void deleteParkingArea(Integer id){
         parkingAreaRepository.deleteById(id);
-        logger.info("ParkingArea " + id + "is deleted.");
+        logger.info("ParkingArea  {},{}" , id , "is deleted.");
         priceRepository.deleteAllByParkingAreaId(id);
         logger.info("All Price related to ParkingArea are deleted.");
     }
@@ -87,11 +87,11 @@ public class ParkingAreaService implements IParkingAreaService {
     @Override
     public ParkingArea getParkingAreaByName(String name){
         ParkingArea p = parkingAreaRepository.findByName(name);
-        logger.info("ParkingArea with name " + name + " is found.");
+        logger.info("ParkingArea with name  {},{}" , name , " is found.");
         int parkingAreaId = p.getId();
         List<Price> prices = priceRepository.findAllByParkingAreaId(parkingAreaId);
         p.setPrices(prices);
-        logger.info("All Price related to ParkingArea with name " + name + " is found.");
+        logger.info("All Price related to ParkingArea with name  {},{}" , name , " is found.");
         return p;
     }
 
@@ -112,10 +112,10 @@ public class ParkingAreaService implements IParkingAreaService {
     @Override
     public double getDailyIncome(int id, String date) throws ParseException {
         logger.info("getDailyIncome method started.");
-        logger.info("Input Date: " + date);
+        logger.info("Input Date: {}" , date);
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         Date dateTime = formatter.parse(date);
-        List<Park> parks = iParkService.findAllByCheckOut_Date(dateTime);
+        List<Park> parks = iParkService.findAllByCheckOutDate(dateTime);
         logger.info("Park records are found.");
         double income = 0;
         for(Park park : parks){

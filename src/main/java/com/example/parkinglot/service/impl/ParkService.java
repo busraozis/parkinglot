@@ -55,7 +55,7 @@ public class ParkService implements IParkService {
         Park park = null;
         if(v.equals(Optional.empty())){
             vehicle = iVehicleService.createVehicle(vehicle);
-            logger.info("Vehicle did not exist. Vehicle " + vehicle.getId() + " is created.");
+            logger.info("Vehicle did not exist. Vehicle {},{}" , vehicle.getId() , " is created.");
         }else{
             vehicle = v.get();
             logger.info("Vehicle is found.");
@@ -64,7 +64,7 @@ public class ParkService implements IParkService {
         ParkingArea p = iParkingAreaService.findById(parkingAreaId);
         int vehicleCount = p.getVehicleCount();
         if(vehicleCount + 1 <= p.getCapacity()) {
-            logger.info("ParkingArea has capacity. Capacity: " + p.getCapacity() + " VehicleCount : " + vehicleCount);
+            logger.info("ParkingArea has capacity. Capacity: {},{},{}" , p.getCapacity() , " VehicleCount : " , vehicleCount);
             park = new Park(date, null, vehicle.getId(), p.getId(), 0);
             park = parkRepository.save(park);
             logger.info("Park is created.");
@@ -72,7 +72,7 @@ public class ParkService implements IParkService {
             iParkingAreaService.saveParkingArea(p);
             logger.info("ParkingArea vehicleCount is updated.");
         }else{
-            logger.info("ParkingArea capacity will be exceeded. Capacity: " + p.getCapacity() + " VehicleCount : " + vehicleCount);
+            logger.info("ParkingArea capacity will be exceeded. Capacity: {},{},{}" , p.getCapacity() , " VehicleCount : " , vehicleCount);
             logger.info("Park cannot be created.");
         }
         return park;
@@ -94,10 +94,10 @@ public class ParkService implements IParkService {
     public Park checkOut(Park park){
 
         Park p = parkRepository.findById(park.getId()).get();
-        logger.info("Park " + park.getId() + "is found.");
-        logger.info("CheckOutDate: " + park.getCheckOut().toString());
-        logger.info("CheckInDate: " + p.getCheckIn().toString());
-        logger.info("Vehicle Id: " + p.getVehicleId());
+        logger.info("Park {},{}" , park.getId() , "is found.");
+        logger.info("CheckOutDate: {}" , park.getCheckOut().toString());
+        logger.info("CheckInDate: {}" , p.getCheckIn().toString());
+        logger.info("Vehicle Id: {}" , p.getVehicleId());
         p.setCheckOut(park.getCheckOut());
         double fee = calculateFee(p.getVehicleId(),p.getParkingAreaId(), p.getCheckIn(), p.getCheckOut());
         p.setFee(fee);
@@ -181,7 +181,7 @@ public class ParkService implements IParkService {
      *
      */
     @Override
-    public List<Park> findAllByCheckOut_Date(Date date){
+    public List<Park> findAllByCheckOutDate(Date date){
 
         logger.info("findAllByCheckOut_Date method started.");
         Date endDate = new Date(date.getTime() + (60 * 60 * 24 * 1000));
