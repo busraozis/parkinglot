@@ -120,11 +120,14 @@ public class ParkService implements IParkService {
             if(p.getCheckOut() != null)
                 throw new AlreadyCheckedOutException("Already checked-out");
 
+            p.setCheckOut(park.getCheckOut());
+            if(timeDifferenceInHours(p.getCheckIn(),p.getCheckOut()) < 0)
+                throw new CheckOutTimeLessThanCheckInTimeException("checkOutTime: " + p.getCheckOut() + " checkInTime: " + p.getCheckIn());
+
             logger.info("Park {},{}", park.getId(), "is found.");
             logger.info("CheckOutDate: {}", park.getCheckOut());
             logger.info("CheckInDate: {}", p.getCheckIn());
             logger.info("Vehicle Id: {}", p.getVehicleId());
-            p.setCheckOut(park.getCheckOut());
             double fee = calculateFee(p.getVehicleId(), p.getParkingAreaId(), p.getCheckIn(), p.getCheckOut());
             p.setFee(fee);
             logger.info("Fee is calculated.");
@@ -170,9 +173,6 @@ public class ParkService implements IParkService {
             Vehicle v = optionalVehicle.get();
 
             long timeDifference = timeDifferenceInHours(checkInTime, checkOutTime);
-
-            if(timeDifference < 0)
-                throw new CheckOutTimeLessThanCheckInTimeException("checkOutTime: " + checkOutTime + " checkInTime: " + checkInTime);
 
             for (Price price : priceList) {
                 long startHour = price.getStartHour();
