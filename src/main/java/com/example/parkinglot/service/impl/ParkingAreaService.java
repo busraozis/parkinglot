@@ -90,7 +90,7 @@ public class ParkingAreaService implements IParkingAreaService {
     @Override
     public ParkingArea getParkingAreaByName(String name){
         ParkingArea p = parkingAreaRepository.findByName(name);
-        if(p.getName() == null){
+        if(p == null){
             logger.info("ParkingArea is not found.");
             throw new ParkingAreaNotFound();
         }
