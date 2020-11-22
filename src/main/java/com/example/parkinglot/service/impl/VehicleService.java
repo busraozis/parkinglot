@@ -27,7 +27,7 @@ public class VehicleService implements IVehicleService {
      *
      * @param vehicle : Vehicle object to be created.
      * @return Vehicle object
-     * @description taked a vehicle as input and searches for Vehicle record with input's plate,
+     * @description takes a vehicle as input and searches for Vehicle record with input's plate,
      * if not found, it creates a related Vehicle record,
      * returns created Vehicle object.
      *
