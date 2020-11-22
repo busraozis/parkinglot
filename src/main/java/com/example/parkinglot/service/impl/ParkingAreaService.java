@@ -3,6 +3,7 @@ package com.example.parkinglot.service.impl;
 import com.example.parkinglot.entity.Park;
 import com.example.parkinglot.entity.ParkingArea;
 import com.example.parkinglot.entity.Price;
+import com.example.parkinglot.exceptions.ParkingAreaNotFound;
 import com.example.parkinglot.exceptions.PriceListNotValidException;
 import com.example.parkinglot.repository.ParkingAreaRepository;
 import com.example.parkinglot.repository.PriceRepository;
@@ -89,6 +90,11 @@ public class ParkingAreaService implements IParkingAreaService {
     @Override
     public ParkingArea getParkingAreaByName(String name){
         ParkingArea p = parkingAreaRepository.findByName(name);
+        if(p.getName() == null){
+            logger.info("ParkingArea is not found.");
+            throw new ParkingAreaNotFound();
+        }
+
         logger.info("ParkingArea with name  {},{}" , name , " is found.");
         int parkingAreaId = p.getId();
         List<Price> prices = priceRepository.findAllByParkingAreaId(parkingAreaId);
@@ -142,13 +148,16 @@ public class ParkingAreaService implements IParkingAreaService {
     public ParkingArea findById(Integer id){
         logger.info("ParkingAreaService.findById method started.");
         Optional<ParkingArea> pa = parkingAreaRepository.findById(id);
-        ParkingArea parkingArea = null;
+        ParkingArea parkingArea;
         if(!pa.equals(Optional.empty()) && pa.isPresent()
         ){
             parkingArea = pa.get();
             logger.info("ParkingArea is found.");
             List<Price> prices = priceRepository.findAllByParkingAreaId(pa.get().getId());
             parkingArea.setPrices(prices);
+        }else{
+            logger.info("ParkingArea is not found.");
+            throw new ParkingAreaNotFound();
         }
         return parkingArea;
     }

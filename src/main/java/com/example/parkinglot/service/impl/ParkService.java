@@ -1,6 +1,9 @@
 package com.example.parkinglot.service.impl;
 
 import com.example.parkinglot.entity.*;
+import com.example.parkinglot.exceptions.AlreadyCheckedInException;
+import com.example.parkinglot.exceptions.AlreadyCheckedOutException;
+import com.example.parkinglot.exceptions.CheckOutTimeLessThanCheckInTimeException;
 import com.example.parkinglot.repository.ParkRepository;
 import com.example.parkinglot.service.IParkService;
 import com.example.parkinglot.service.IParkingAreaService;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.Date;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Service
@@ -61,6 +65,17 @@ public class ParkService implements IParkService {
             logger.info("Vehicle is found.");
         }
 
+        //if vehicle is already parked and not checked out, throw exception.
+        Park oldPark = parkRepository.findByVehicleId(vehicle.getId());
+        if(oldPark != null){
+            Date checkIn = oldPark.getCheckIn();
+            Date checkOut = oldPark.getCheckOut();
+
+            if(checkIn != null && checkOut == null){
+                throw new AlreadyCheckedInException("Vehicle is already checkedin.");
+            }
+        }
+
         ParkingArea p = iParkingAreaService.findById(parkingAreaId);
         int vehicleCount = p.getVehicleCount();
         if(vehicleCount + 1 <= p.getCapacity()) {
@@ -83,7 +98,8 @@ public class ParkService implements IParkService {
      * @param park : Park object to be checked out.
      * @return updated Park object.
      * @description takes park input to be checked-out,
-     * finds the Park record to be checked-out by input park's id,
+     * if vehicleId is not empty, finds the Park record to be checked-out by vehicle id,
+     * else finds the Park record to be checked-out by input park's id,
      * calculates fee and sets fee of found Park object,
      * finds park-related ParkingArea record and updates its vehicle count subtracting 1.
      * returns updated Park object.
@@ -93,9 +109,17 @@ public class ParkService implements IParkService {
     @Transactional
     public Park checkOut(Park park){
 
-        Optional<Park> optionalPark = parkRepository.findById(park.getId());
+        Optional<Park> optionalPark;
+        if(park.getVehicleId() != null){
+            optionalPark = Optional.ofNullable(parkRepository.findByVehicleId(park.getVehicleId()));
+        }else{
+            optionalPark = parkRepository.findById(park.getId());
+        }
         if(optionalPark.isPresent()) {
             Park p = optionalPark.get();
+            if(p.getCheckOut() != null)
+                throw new AlreadyCheckedOutException("Already checked-out");
+
             logger.info("Park {},{}", park.getId(), "is found.");
             logger.info("CheckOutDate: {}", park.getCheckOut());
             logger.info("CheckInDate: {}", p.getCheckIn());
@@ -111,8 +135,10 @@ public class ParkService implements IParkService {
             iParkingAreaService.saveParkingArea(pa);
             logger.info("ParkingArea vehicleCount is updated.");
             return parkRepository.save(p);
+        }else{
+            logger.info("Park is not found.");
+            throw new NoSuchElementException();
         }
-        return null;
     }
 
     /**
@@ -144,6 +170,9 @@ public class ParkService implements IParkService {
             Vehicle v = optionalVehicle.get();
 
             long timeDifference = timeDifferenceInHours(checkInTime, checkOutTime);
+
+            if(timeDifference < 0)
+                throw new CheckOutTimeLessThanCheckInTimeException("checkOutTime: " + checkOutTime + " checkInTime: " + checkInTime);
 
             for (Price price : priceList) {
                 long startHour = price.getStartHour();

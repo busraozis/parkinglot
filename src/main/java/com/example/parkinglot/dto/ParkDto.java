@@ -1,5 +1,6 @@
-package com.example.parkinglot.entity;
+package com.example.parkinglot.dto;
 
+import com.example.parkinglot.entity.Park;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -8,14 +9,12 @@ import lombok.NoArgsConstructor;
 import javax.persistence.*;
 import java.util.Date;
 
-@Entity
+
 @Data
 @NoArgsConstructor
 @ApiModel(value = "Park", description = "This is a Park model.")
-public class Park {
+public class ParkDto {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @ApiModelProperty(value = "id")
     private Integer id;
 
@@ -38,13 +37,9 @@ public class Park {
 
     @ApiModelProperty
     @Transient
-    private Vehicle vehicle;
+    private VehicleDto vehicle;
 
-    public Park(Date checkIn, Date checkOut, Integer vehicleId, Integer parkingAreaId, double fee){
-        this.checkIn = checkIn;
-        this.checkOut = checkOut;
-        this.vehicleId = vehicleId;
-        this.parkingAreaId = parkingAreaId;
-        this.fee = fee;
+    public Park convertToParkEntity(){
+        return new Park(this.checkIn, this.checkOut, this.vehicleId, this.parkingAreaId, this.fee);
     }
 }

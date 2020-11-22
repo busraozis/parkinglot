@@ -1,11 +1,12 @@
 package com.example.parkinglot.controller;
 
 
+import com.example.parkinglot.dto.ParkDto;
+import com.example.parkinglot.dto.ParkingAreaDto;
+import com.example.parkinglot.dto.VehicleDto;
 import com.example.parkinglot.entity.Park;
 import com.example.parkinglot.entity.ParkingArea;
 import com.example.parkinglot.entity.Vehicle;
-import com.example.parkinglot.exceptions.PriceListNotValidException;
-import com.example.parkinglot.exceptions.VehicleTypeNotValidException;
 import com.example.parkinglot.service.IParkService;
 import com.example.parkinglot.service.IParkingAreaService;
 import com.example.parkinglot.service.IVehicleService;
@@ -35,20 +36,21 @@ public class ParkingLotController {
 
     @PostMapping(value = "/createParkingArea")
     @ApiOperation(value = "Creates Parking Area", httpMethod = "POST")
-    public ResponseEntity<ParkingArea> createParkingArea(@RequestBody @ApiParam ParkingArea parkingArea){
-        return new ResponseEntity<>(iParkingAreaService.saveParkingArea(parkingArea), HttpStatus.CREATED);
+    public ResponseEntity<ParkingArea> createParkingArea(@RequestBody @ApiParam ParkingAreaDto parkingArea){
+        return new ResponseEntity<>(iParkingAreaService.saveParkingArea(parkingArea.convertToParkingAreaEntity()), HttpStatus.CREATED);
     }
 
     @PostMapping(value = "/updateParkingArea")
     @ApiOperation(value = "Updates Parking Area")
-    public ResponseEntity<ParkingArea> updateParkingArea(@RequestBody ParkingArea parkingArea){
-        return new ResponseEntity<>(iParkingAreaService.saveParkingArea(parkingArea),HttpStatus.OK);
+    public ResponseEntity<ParkingArea> updateParkingArea(@RequestBody ParkingAreaDto parkingArea){
+        return new ResponseEntity<>(iParkingAreaService.saveParkingArea(parkingArea.convertToParkingAreaEntity()),HttpStatus.OK);
     }
 
     @DeleteMapping(value = "/deleteParkingArea/{id}")
     @ApiOperation(value = "Deletes Parking Area By Taking Its Id")
-    public void deleteParkingArea(@PathVariable Integer id){
+    public ResponseEntity<String> deleteParkingArea(@PathVariable Integer id){
         iParkingAreaService.deleteParkingArea(id);
+        return new ResponseEntity<>("ParkingArea " + id + " is deleted.", HttpStatus.OK);
     }
 
     @GetMapping(value = "/getParkingAreaByName/{name}")
@@ -59,20 +61,20 @@ public class ParkingLotController {
 
     @PostMapping(value = "/createVehicle")
     @ApiOperation(value = "Creates Vehicle")
-    public ResponseEntity<Vehicle> createVehicle(@RequestBody Vehicle vehicle){
-        return new ResponseEntity<>(iVehicleService.createVehicle(vehicle),HttpStatus.CREATED);
+    public ResponseEntity<Vehicle> createVehicle(@RequestBody VehicleDto vehicle){
+        return new ResponseEntity<>(iVehicleService.createVehicle(vehicle.convertToVehicleEntity()),HttpStatus.CREATED);
     }
 
     @PostMapping(value = "/checkin")
     @ApiOperation(value = "Checks In a Vehicle in a Parking area", notes = "checkIn, parkingAreaId and vehicle is required.")
-    public ResponseEntity<Park> createPark(@RequestBody Park park){
-        return new ResponseEntity<>(iParkService.checkIn(park.getVehicle(),park.getParkingAreaId(),park.getCheckIn()),HttpStatus.CREATED);
+    public ResponseEntity<Park> createPark(@RequestBody ParkDto park){
+        return new ResponseEntity<>(iParkService.checkIn(park.getVehicle().convertToVehicleEntity(),park.getParkingAreaId(),park.getCheckIn()),HttpStatus.CREATED);
     }
 
     @PostMapping(value = "/checkout")
     @ApiOperation(value = "Checks Out a Vehicle From a Parking area", notes = "checkOut, parkId is required.")
-    public ResponseEntity<Park> updatePark(@RequestBody Park park){
-        return new ResponseEntity<>(iParkService.checkOut(park), HttpStatus.OK);
+    public ResponseEntity<Park> updatePark(@RequestBody ParkDto park){
+        return new ResponseEntity<>(iParkService.checkOut(park.convertToParkEntity()), HttpStatus.OK);
     }
 
     @GetMapping(path = "/getDailyIncome/parkingArea/{id}/date/{date}")
@@ -82,13 +84,4 @@ public class ParkingLotController {
         return iParkingAreaService.getDailyIncome(id,date);
     }
 
-    @ExceptionHandler({VehicleTypeNotValidException.class})
-    public String vehicleTypeNotValidException(){
-        return "Vehicle type is not valid.";
-    }
-
-    @ExceptionHandler({PriceListNotValidException.class})
-    public String priceListNotValidException(){
-        return "Price List is invalid.";
-    }
 }

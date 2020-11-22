@@ -25,8 +25,8 @@ public class Price implements Comparable<Price>{
 
     @Override
     public int compareTo(Price p){
-        Long startHour = new Long(this.startHour);
-        Long pStartHour = new Long(p.getStartHour());
-        return startHour.compareTo(pStartHour);
+        Long cStartHour = this.startHour;
+        Long pStartHour = p.getStartHour();
+        return cStartHour.compareTo(pStartHour);
     }
 }

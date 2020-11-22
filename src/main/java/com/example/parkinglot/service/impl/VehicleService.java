@@ -41,7 +41,7 @@ public class VehicleService implements IVehicleService {
         if(v.equals(empty()))
             return vehicleRepository.save(vehicle);
         else{
-            //throw object exists exception
+            logger.info("Vehicle to be created already exists.");
             return null;
         }
     }
